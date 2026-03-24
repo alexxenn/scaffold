@@ -1,0 +1,12 @@
+{
+  "name": "scaffold",
+  "description": "The only Claude Code framework with persistent memory backed by Obsidian. Every session resumes where you left off — no recap, no context loss. Includes decision enforcement, 3-tier model routing (~75% token savings), workflow gates, TDD, and context recovery. 17 skills.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Alex Xenakis",
+    "url": "https://github.com/alexxenn"
+  },
+  "homepage": "https://github.com/alexxenn/scaffold",
+  "repository": "https://github.com/alexxenn/scaffold",
+  "license": "MIT"
+}
