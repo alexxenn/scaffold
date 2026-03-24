@@ -1,6 +1,6 @@
 # Scaffold
 
-**Claude stops mid-task, lies about finishing, and forgets everything you told it. This fixes that.**
+**Claude abandons tasks mid-stream, swears it's done, and remembers nothing. Meet the skills framework that fixes it.**
 
 ![Scaffold demo](assets/demo.gif)
 
@@ -15,16 +15,14 @@ git clone https://github.com/alexxenn/scaffold && cd scaffold && ./install.sh
 
 ---
 
-Claude Code is the best AI coding tool available and it will still destroy your afternoon. It ignores your `CLAUDE.md` after two prompts. It silently drops tasks and tells you they're done. Every session starts from absolute zero — no memory of the architecture decisions you spent three hours debating yesterday. Without structure, Claude drifts. Context rots. One bad planning step poisons the entire session and you spend more time fixing Claude than writing code.
+Claude Code is the best AI coding tool you have. It's also a context-erasing, task-abandoning, hallucination machine that forgot your architecture decisions five prompts ago. Every session starts blank. Your `CLAUDE.md` gets ignored. You spend more time repeating yourself than shipping code. One bad planning decision cascades into hours of cleanup because Claude never learns from it. You're not collaborating with an engineer — you're babysitting an overpowered text autocomplete that gaslit you into thinking it finished.
 
-This is a skills framework that turns Claude Code from a forgetful intern into a disciplined engineering partner. No wrappers. No external services. Just structured instructions, purpose-built skills, and always-active guardrails that Claude actually follows.
+Scaffold burns the whole thing down. It keeps Claude honest.
 
-**What you get that no other framework provides:**
-
-- **Persistent memory + Obsidian** — Claude reads your full project knowledge base at session start. Sessions resume, not restart.
-- **Decision enforcement** — `/decide` spawns scaled research and debate agents, logs verdicts permanently. No more winging architecture choices.
-- **Always-active domain rules** — Guardrails baked into every session. Auth before logic. No credential forwarding. Schema strictness.
-- **~75% token savings** — 3-tier model routing: Haiku for search, Sonnet for code, Opus for decisions.
+- **Actually remember your decisions** — Persistent memory + Obsidian vault means Claude reads your full project context at session start. Architecture decisions stay decided. Sessions resume instead of restarting from scratch every time.
+- **Force better architecture choices** — `/decide` runs scaled research and debate across agents, logs the verdict permanently, and blocks implementation until resolved. No more winging critical design decisions.
+- **Stop Claude from lying about completion** — Workflow gates, verification checkpoints, and systematic debugging force Claude to actually finish what it starts. Tasks get audited. Progress gets logged. No silent failures.
+- **Slash token spend by 75%** — 3-tier model routing (Haiku for search, Sonnet for code, Opus for decisions) gives you the right brain for the right job and keeps billing reasonable.
 
 `scaffold · 17 skills · 5 hooks · ~75% token savings · Claude Code 2.0+`
 
@@ -34,17 +32,17 @@ This is a skills framework that turns Claude Code from a forgetful intern into a
 
 | What You Experience | What Actually Happens | What The Framework Delivers |
 |---|---|---|
-| Claude delivers 60% of the work, says "done" | Mid-task abandonment with false confidence | Verification gates that enforce completion before marking tasks done |
-| Every new session, you explain the project from scratch | Zero session persistence — no memory bridge between conversations | Auto-loaded project context, decisions, and execution state at session start |
-| You write CLAUDE.md rules, Claude ignores them after message 5 | Rules fade as context fills; no enforcement mechanism | Session persistence protocol + memory files that survive across conversations |
-| Your token bill is crushing you | Everything routes to Opus by default; no cost-aware routing | 3-tier model routing (Haiku → Sonnet → Opus) with ~75% token savings |
-| You're winging architecture decisions | No structured debate; decisions made in chat without research | Decision gates with multi-agent research, WebSearch, and logged verdicts |
+| Claude delivers 60% of the work, then vanishes mid-implementation with "I've laid the groundwork" | Mid-task abandonment disguised as progress. You're left debugging half-finished code, missing edge cases, incomplete tests. | Verification gates that refuse to close a task until it actually passes. No "done" without proof. |
+| Every new session, you re-explain the entire project, architecture, and last week's decisions | Zero session persistence. Each conversation starts blank. Your CLAUDE.md rules, context, and decision history evaporate the moment you close the tab. | Auto-loaded project context, architecture decisions, execution state, and rules at session start. Zero re-onboarding tax. |
+| You write ironclad CLAUDE.md rules. Claude follows them for 5 messages, then forgets they exist | Rules fade as context window fills. There's no enforcement layer. The framework knows your rules exist but has no mechanism to stay true to them. | Session persistence protocol + memory files that survive across conversations. Rules are structurally enforced, not just hoped for. |
+| Your token bill explodes with no visibility into why | Everything routes to Opus by default — the $15/MTok model. You're paying premium rates for research, boilerplate, and simple transformations that Haiku could handle for $0.25/MTok. | 3-tier model routing (Haiku → Sonnet → Opus) applied automatically across all skills. ~75% token savings without losing capability. |
+| Architecture decisions happen in chat, no debate, no research logged | You pick a library because it "feels right." No structured research. No logged verdict. Six weeks later, you discover it was the wrong choice and there's no record of why you picked it. | Multi-agent research + structured debate with WebSearch. Every decision is logged to your architecture decision log with reasoning and dissent included. |
 
 ---
 
 ## Token Efficiency First
 
-Every decision you make in Claude Code carries a real cost. This framework automatically routes work to the cheapest capable model — applied across all 17 skills automatically. You don't toggle it. It's always on.
+Every decision you make in Claude Code carries a real cost. Right now, you're probably bleeding money routing everything to Opus when cheaper models could handle 80% of your work. This framework automatically routes work to the cheapest capable model — applied across all 17 skills without you thinking about it. It's always on.
 
 | Model | Cost per MTok | Best For |
 |-------|---------------|----------|
@@ -60,7 +58,7 @@ Every decision you make in Claude Code carries a real cost. This framework autom
 | Medium (library, pattern) | 4-6 agents: haiku + sonnet | **~75% cheaper** |
 | Major (architecture, framework) | 8-12 agents: haiku + sonnet + opus | **~55% cheaper** |
 
-The routing rule: security decisions always escalate to Opus. Everything else routes down to the cheapest model that can handle it.
+The routing rule: security decisions always escalate to Opus. Everything else routes down to the cheapest model that can handle it. A minor naming decision doesn't need Opus. Neither does loading context. A security audit does. The framework knows the difference — and acts accordingly.
 
 ---
 
@@ -72,25 +70,27 @@ These don't exist anywhere else. They solve the problems Claude Code has out of 
 
 | Skill | What it solves |
 |---|---|
-| `/project-setup` | Bootstraps a complete project skeleton — Obsidian KB, CLAUDE.md with domain rules, persistent memory, and custom skills that encode your actual types, paths, and patterns. Not generic templates. |
-| `/decide` | Scaled research and structured debate for architecture decisions. 2-3 haiku agents for a naming choice, up to 12 agents with Opus debate rounds for a framework pick. Logs the verdict permanently. Blocks implementation until resolved. |
-| `/preload` | Warm-starts any session in seconds. Reads all memory files, session logs, architecture decisions, and domain rules, then outputs a single execution brief. Run this once at session start instead of re-explaining your entire project. |
-| `/sync-context` | Loop-compatible drift detection. Run with `/loop 15m /sync-context`. Watches for rule violations, surfaces forgotten decisions, health-checks session state. Quiet when everything's clean, loud the moment something drifts. |
+| `/project-setup` | Bootstraps a complete project skeleton with Obsidian KB, CLAUDE.md domain rules, persistent memory, and custom skills — all pre-configured for your actual types, paths, and patterns instead of generic templates. Start new projects in minutes, not hours. |
+| `/decide` | Kills decision paralysis through scaled research and structured debate. 2-3 agents for naming choices, up to 12 agents with Opus debate rounds for architecture decisions. Verdict gets logged permanently and blocks implementation until resolved. |
+| `/preload` | Warm-starts any session in seconds by reading all memory, session logs, architecture decisions, and domain rules into a single execution brief. Never re-explain your project again. |
+| `/sync-context` | Runs on a loop (`/loop 15m /sync-context`) to catch drift in real time — rule violations, forgotten decisions, and session health issues. Silent when clean, loud when something breaks. |
 
 ### Workflow & Quality Gates
 
-Every "Claude went off the rails" story has the same root cause: no gates between phases.
+Every "Claude went off the rails" story has the same root cause: no gates between phases. These skills enforce them.
 
 | Skill | What it solves |
 |---|---|
-| `/workflow-gate` | Hard gates between brainstorm, plan, execute, and review. Includes 3-failure escalation — three consecutive failures force a replan instead of letting a bad step 2 poison everything downstream. |
-| `/sparc` | Spec, Pseudocode, Architecture, Refinement, Completion. For complex features that need written artifacts at each stage. Persists across sessions so you never lose mid-feature progress. |
-| `/tdd` | Iron law: tests written first, always. No implementation before a failing test exists. Enforces red, green, refactor with no exceptions. |
-| `/review` | Two-stage code review. Sonnet auto-pass catches conventions, obvious bugs, and lint. Opus deep-reviews only the 20-30% of files that auto-pass flags. You pay for depth only where it matters. |
-| `/debug-systematic` | Four-phase scientific method: Observe, Hypothesize, Test, Conclude. 3-failure escalation built in. Kills the infinite random-guessing loops that burn tokens and fix nothing. |
+| `/workflow-gate` | Hard gates between brainstorm, plan, execute, and review with built-in 3-failure escalation — three consecutive failures force a replan instead of letting a bad step 2 poison everything downstream. |
+| `/sparc` | Spec, Pseudocode, Architecture, Refinement, Completion. For complex features, forces written artifacts at each stage and persists progress across sessions so you never lose mid-feature work. |
+| `/tdd` | Iron law: tests written first, always. Enforces red → green → refactor with no exceptions. Implementation cannot start until a failing test exists. |
+| `/review` | Two-stage code review: Sonnet auto-passes simple files (conventions, obvious bugs, lint), Opus deep-reviews only the 20-30% that matter. You pay for depth only where it counts. |
+| `/debug-systematic` | Four-phase scientific method: Observe, Hypothesize, Test, Conclude. 3-failure escalation built in. Kills infinite random-guessing loops that burn tokens and fix nothing. |
 | `/verify` | Hard gate before marking work done. Checks requirements against actual code (not what the model remembers writing), runs tests, validates domain rules, and scans for regressions. |
 
 ### Token Efficiency & Agent Management
+
+Maximize output per token by routing work to the right model tier and parallelizing intelligently.
 
 | Skill | What it solves |
 |---|---|
@@ -115,7 +115,7 @@ Every "Claude went off the rails" story has the same root cause: no gates betwee
 
 ![Memory demo](assets/memory-demo.gif)
 
-Every other framework resets between sessions. You re-explain your stack, your decisions, your rules — every single time. Scaffold builds a living knowledge base backed by [Obsidian](https://obsidian.md/) that Claude reads from at the start of every session.
+Every other framework resets between sessions. Session 1, you explain your stack, your decisions, your rules. Session 5, you explain them again. Session 50, you're still explaining the same things. Scaffold builds a living knowledge base backed by [Obsidian](https://obsidian.md/) that Claude reads from at the start of every session — so you never have to repeat yourself again.
 
 `/project-setup` generates a full Obsidian vault for your project:
 
@@ -139,7 +139,7 @@ Everything is **wiki-linked in Obsidian**. Architecture decisions link to the pa
 4. Reads your domain rules
 5. Outputs a single execution brief — Claude knows everything, you say nothing
 
-**The result:** Session 50 is as coherent as session 5. You stop repeating yourself to Claude forever.
+**The result:** You pick up mid-task, mid-thought, mid-refactor. Context survives you. Decisions stick. Patterns compound. Session 50 is as coherent as session 5 — because it's a continuation of it.
 
 ---
 
@@ -159,21 +159,21 @@ What happens:
 
 Auto-detection works too. Choosing a new dependency triggers `/decide --size medium` automatically. You can override, but the framework nudges you toward rigor.
 
-**The difference:** You spend research time once, then stop re-litigating. Settled questions stay settled.
+**The payoff:** You research once, then move on. Settled questions stay settled. No re-litigating the same choice three months later because you forgot why you made it.
 
 ---
 
 ## Always-Active Domain Rules
 
-CLAUDE.md rules get ignored after a few messages. This framework enforces them every session.
+CLAUDE.md rules get ignored after a few messages. Scaffold enforces them every session.
 
-`/project-setup` generates your CLAUDE.md with domain-specific rules baked in. `/sync-context` detects when rules are being violated mid-session and surfaces them.
+`/project-setup` generates your CLAUDE.md with domain-specific rules baked in: auth checks before logic, input sanitization, no unwrap() outside tests, tenant isolation, rate limiting — whatever your stack demands. `/sync-context` detects when rules are being violated mid-session and surfaces them immediately. Not in a post-mortem code review, but in real-time. Rules aren't suggestions; they're embedded in the execution loop. Violations bubble up before they compound.
 
 ---
 
 ## Hooks
 
-Install by merging `hooks/settings.json` into `~/.claude/settings.json`.
+Install by merging `hooks/settings.json` into `~/.claude/settings.json`. Hooks fire even when Claude forgets — they're the guardrails that don't depend on memory.
 
 | Hook | Trigger | What it does |
 |------|---------|-------------|
@@ -251,11 +251,11 @@ git clone https://github.com/alexxenn/scaffold && cd scaffold && ./install.sh
 
 ### A real day
 
-**Morning:** `/preload` — loads memory + vault + recent decisions → tells you exactly where you left off
+**Morning:** Run `/preload`. It reads your memory from yesterday, pulls the latest session log from your vault, loads your project's decisions and patterns. Twenty seconds later, you know exactly where you left off and what's blocking you.
 
-**During:** `/workflow-gate` for features · `/tdd` for new code · `/decide` for architecture choices
+**During:** `/workflow-gate` for features · `/tdd` for new code · `/decide` for architecture choices · `/debug-systematic` when tests fail.
 
-**End:** `/verify` · `/context-save`
+**End:** `/verify` runs a final gate — lint, typecheck, tests. If it passes, you're done. Then `/context-save` writes a recovery prompt for tomorrow.
 
 Next morning, `/preload` picks up exactly where you stopped.
 
