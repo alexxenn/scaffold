@@ -86,6 +86,18 @@ Check for:
 - Work-in-progress checkpoints: check for `.continue-here.md`
 - Uncommitted changes: run `git status` if in a git repo
 
+### Step 6.5: Check for Active Execution Plan
+
+Look for `EXECUTION_PLAN.md` in the project's Obsidian vault (same path logic as Step 3).
+
+If found:
+- Read the Summary section: total tasks, done count, % complete
+- Identify the current wave (tasks with all deps done and status=pending)
+- Note any blocked tasks
+- Note any decision or manual tasks in the current wave (they pause /execute)
+
+This data feeds into the execution brief as "ACTIVE PLAN".
+
 ### Step 7: Generate Execution Brief
 
 **Brief mode (default):**
@@ -112,6 +124,14 @@ Check for:
   PREFERENCES:
     - <communication style>
     - <key feedback items>
+
+  ACTIVE PLAN: <plan name> — <X>% complete (<N>/<total> tasks done)
+  Current wave: <N> tasks ready
+    → <T_id>: <task name> [<skill chain>]
+    → <T_id>: <task name> [<skill chain>]
+  <If any decision/manual task in wave>:
+    ⚠️  Wave contains <decision/manual> task — /execute will pause for input
+  Next: /execute  (or /progress for full view)
 
   BLOCKERS: <any from status file, or "None">
 
@@ -152,3 +172,4 @@ Flag any issues:
 5. **Surface blockers prominently.** If there's a blocker, it goes at the top, not buried in the middle.
 6. **Multi-project aware.** If the workspace has multiple projects (ClawForge + AG Bridge), load the right one based on `--project` or current directory context.
 7. **Respect communication preferences.** The brief itself should follow the user's stated communication style (no fluff, direct, advanced).
+8. **Surface active plans.** If EXECUTION_PLAN.md exists for the current project, always include the plan status and current wave in the execution brief. This is the primary "what to do next" signal when a plan is active.
