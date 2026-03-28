@@ -24,7 +24,7 @@ Scaffold burns the whole thing down. It keeps Claude honest.
 - **Stop Claude from lying about completion** — Workflow gates, verification checkpoints, and systematic debugging force Claude to actually finish what it starts. Tasks get audited. Progress gets logged. No silent failures.
 - **Slash token spend by 75%** — 3-tier model routing (Haiku for search, Sonnet for code, Opus for decisions) gives you the right brain for the right job and keeps billing reasonable.
 
-`scaffold · 17 skills · 5 hooks · ~75% token savings · Claude Code 2.0+`
+`scaffold · 20 skills · 5 hooks · ~75% token savings · Claude Code 2.0+`
 
 ---
 
@@ -59,6 +59,8 @@ Every decision you make in Claude Code carries a real cost. Right now, you're pr
 | Major (architecture, framework) | 8-12 agents: haiku + sonnet + opus | **~55% cheaper** |
 
 The routing rule: security decisions always escalate to Opus. Everything else routes down to the cheapest model that can handle it. A minor naming decision doesn't need Opus. Neither does loading context. A security audit does. The framework knows the difference — and acts accordingly.
+
+Every skill enforces this internally: context passed between agents is compressed to ≤150 tokens, file reads use haiku, `/preload` runs parallel reads instead of sequential, and no skill re-reads `CLAUDE.md` if you already ran `/preload` this session. The savings compound across every invocation.
 
 ---
 
@@ -99,12 +101,22 @@ Maximize output per token by routing work to the right model tier and paralleliz
 | `/worktree` | Git worktree management for safe experiments. Risky work runs in an isolated checkout — the agent literally cannot corrupt your main tree. Merge only what passes. |
 | `/skill-create` | Meta-skill. Creates new properly-structured skills with model routing, project pattern awareness, and a rules section. The right way to extend the framework instead of copying and editing by hand. |
 
+### Execution Orchestration (the conductor layer)
+
+Skills are only as good as the system that strings them together. These three turn Scaffold from a collection of tools into an execution engine.
+
+| Skill | What it solves |
+|---|---|
+| `/plan` | Breaks a goal into a dependency-aware task graph stored in Obsidian. Each task gets a type (code/decision/feature/bug) and an auto-assigned skill chain (`/tdd→/review→/verify` for code tasks, `/decide` for architecture). `/execute` reads this file — you plan once, then execution runs itself. |
+| `/execute` | The conductor. Reads the task graph, identifies the current wave (tasks with dependencies satisfied), runs each task's skill chain in order, gates with `/verify`, marks done, auto-advances. Pauses for `/decide` and manual tasks. Checkpoints after every wave. |
+| `/progress` | Visual task graph: done/running/blocked/queued. Auto-surfaced by `/preload` when a plan exists — so session start shows not just where you left off, but exactly what executes next. |
+
 ### Recovery & Context (solve the hardest Claude pain points)
 
 | Skill | What it solves |
 |---|---|
 | `/loop-guard` | Audits for incomplete work: truncated files, partial commits, gaps vs original request. Forces completion before you think you're done. |
-| `/context-save` | Saves current session state before context compaction. Writes a `RESUME.md` recovery prompt so you pick up exactly where you left off. |
+| `/context-save` | Saves current session state before context compaction. Writes a compact `RESUME.md` (≤500 tokens) so you pick up exactly where you left off without re-loading dead weight. |
 | `/agents-md` | Generates `AGENTS.md` — universal AI agent instructions that work with Claude Code, Cursor, GitHub Copilot, and any AI that reads agent config files. Based on the community standard with 3,367 upvotes on GitHub. |
 
 ---
