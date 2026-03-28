@@ -27,6 +27,15 @@ Writes to two places:
 - Memory: updates `<project>_current_status.md` with above
 - Resume prompt: writes `RESUME.md` in project root with a self-contained "resume from here" prompt
 
+**Keep the resume file compact:** Target ≤500 tokens for RESUME.md. The file must contain everything needed to resume — but not everything that happened. Include:
+- Current task (name + where you stopped)
+- Files touched (paths only, no contents)
+- Decisions made (verdict only)
+- Blockers (one line each)
+- Exact next step (one actionable sentence)
+
+Omit: full conversation summaries, code snippets, verbose rationale.
+
 `RESUME.md` format:
 ```markdown
 # Resume Point — [timestamp]
@@ -70,6 +79,10 @@ Read the most recent RESUME.md and output a structured brief for starting fresh:
 ## When to run automatically
 
 The Stop hook reminds you to run `/context-save` at session end. But also run it proactively when you see Claude's context warning.
+
+## Rules
+
+1. **Compact saves save tokens at resume.** A 2,000-token RESUME.md costs 2,000 tokens every time /preload reads it. A 400-token RESUME.md costs 400 tokens. Compact saves compound across every future session.
 
 ## Model routing
 

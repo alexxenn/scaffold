@@ -32,17 +32,12 @@ This skill READS everything and presents a concise execution brief. It writes no
 
 ### Step 1: Load Memory Files
 
-Read ALL memory files from the project's memory directory:
+Dispatch 3 parallel haiku agents to read simultaneously:
+- Agent 1: Read MEMORY.md + all user/feedback memory files
+- Agent 2: Read project status file + latest session log entry
+- Agent 3: Read architecture decisions log (last 5 decisions only, not full history)
 
-1. Read `MEMORY.md` index to discover all memory files
-2. Read every linked memory file:
-   - **User profile** → who you're working with (expertise level, preferences)
-   - **Feedback** → communication style, what to avoid, what works
-   - **Project status files** → current phase, what's done, what's next, blockers
-   - **Architecture decisions** → resolved debates that constrain implementation
-   - **Reference files** → vault locations, skill locations, external systems
-
-Store key facts for the execution brief.
+Aggregate results in parent context. Total read time = longest single file, not sum of all files.
 
 ### Step 2: Load Current Project Status
 
@@ -67,7 +62,7 @@ Cross-reference with status file — if they disagree, flag it.
 ### Step 4: Load Architecture Decisions
 
 Find and read `ARCHITECTURE_DECISIONS_LOG.md` from the Obsidian vault:
-- List all decisions with their one-line verdict
+- List the last 5 decisions with one-line verdicts. Only load older decisions if they're directly relevant to the next task (check task description against decision titles). Do NOT dump the full decision log into context.
 - Flag any decisions that are relevant to the NEXT task (based on status file)
 
 ### Step 5: Load Domain Rules
@@ -77,6 +72,8 @@ Read `CLAUDE.md` from the project root:
 - Extract the "Communication Style" section
 - Extract the "Decision Protocol" section (if present)
 - Extract the "Skill Routing" table
+
+**If this session already ran /preload:** Skip re-reading CLAUDE.md. Reference the domain rules by name from the existing brief. Re-reading every session invocation multiplies costs unnecessarily.
 
 ### Step 6: Load Active Constraints
 
@@ -173,3 +170,5 @@ Flag any issues:
 6. **Multi-project aware.** If the workspace has multiple projects (ClawForge + AG Bridge), load the right one based on `--project` or current directory context.
 7. **Respect communication preferences.** The brief itself should follow the user's stated communication style (no fluff, direct, advanced).
 8. **Surface active plans.** If EXECUTION_PLAN.md exists for the current project, always include the plan status and current wave in the execution brief. This is the primary "what to do next" signal when a plan is active.
+9. **Parallel reads with haiku.** Never read memory files sequentially. Dispatch parallel haiku agents. Reading 5 files sequentially costs 5× the latency. Parallel haiku reads cost the same tokens at 1/5 the wait.
+10. **Recency over completeness.** Load the last session log entry, not all session logs. Load the last 5 decisions, not all decisions. Load the current status file, not history. The user needs context on NOW, not a full audit trail.

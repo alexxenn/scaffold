@@ -53,6 +53,11 @@ Enforce a structured 4-phase workflow for any non-trivial task. Each phase has a
 2. Deploy 2 Explore agents in parallel (model: `haiku` for codebase search):
    - Agent 1: Search codebase for related patterns, existing implementations
    - Agent 2: Identify affected files, dependencies, test coverage
+
+   Both agents are haiku — codebase search and file identification are grep-level operations. Do not use sonnet or opus for this step.
+
+   Each agent's prompt must be ≤200 tokens. Pass only: task description, file paths to search, what to return.
+
 3. Synthesize findings (parent context — no extra agent needed)
 4. List ≥2 approaches:
 
@@ -107,6 +112,8 @@ Enforce a structured 4-phase workflow for any non-trivial task. Each phase has a
 
 **Gate requirement:** All plan steps completed, tests pass.
 
+**During execution, do NOT re-read CLAUDE.md domain rules** if /preload ran this session or if they were read in the Brainstorm phase. Reference by name. Re-reading on every step compounds costs across a multi-hour workflow.
+
 1. Execute steps IN ORDER
 2. After each step: run relevant tests
 3. If test fails → fix before next step
@@ -132,7 +139,7 @@ Enforce a structured 4-phase workflow for any non-trivial task. Each phase has a
 
 1. Re-read plan's done criteria
 2. Verify EACH criterion against actual code (read the files, don't trust memory)
-3. Run full test suite for affected areas
+3. Run only tests for modified files + their direct dependencies. Full suite only if changes touch shared utilities or global state. Running 500 tests for a 2-file change is wasteful.
 4. Check for side effects:
    - Unrelated test breakage?
    - TODOs or temporary hacks introduced?
@@ -173,3 +180,5 @@ GATE STATE: <task> | Phase: <N> <name> | Gate: <OPEN/LOCKED>
 7. **Force override is logged.** `--force` bypasses a gate but records it visibly.
 8. **Review verifies from code, not memory.** Always re-read files during review. Context may have drifted.
 9. **Model routing applies.** Brainstorm exploration uses haiku agents, plan uses sonnet, review uses sonnet + opus.
+10. **Domain rules are read once.** In a /workflow-gate session, CLAUDE.md domain rules are read during Brainstorm and referenced by name in Plan, Execute, and Review. No re-reading per phase.
+11. **Haiku for codebase scanning.** Any agent that searches files, counts things, or finds patterns is haiku. Only escalate to sonnet when the agent must understand and synthesize what it finds.

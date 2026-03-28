@@ -45,6 +45,8 @@ A hard gate that runs BEFORE declaring any task complete. Prevents the common fa
 
 ### 1. Requirements Check
 
+Use a haiku agent to scan files for requirement markers (grep-level work). Only escalate to sonnet if the requirement involves logic verification (not just "does this line exist").
+
 For each stated requirement:
 - **Read the actual code** that implements it (don't trust conversation memory)
 - Verify the implementation matches the requirement (not just "code exists in the right file")
@@ -76,6 +78,8 @@ Report:
 **Any failing test = verification FAILS.** No exceptions.
 
 ### 3. Domain Rules Check
+
+**If /preload ran this session:** Use the domain rules from the session brief — do not re-read CLAUDE.md. This saves one full file read per /verify invocation.
 
 Read CLAUDE.md domain rules and check modified files against each rule:
 
@@ -157,3 +161,5 @@ Assume the auto-checks passed. Look for things automation misses:
 6. **This is the LAST step.** Don't run verify, find issues, fix them, and then NOT verify again. Every fix gets re-verified.
 7. **Model routing:** Most checks use sonnet or haiku (pattern matching + test running). Only `--strict` escalates to opus.
 8. **Report model usage.** Show which tier was used for each check.
+9. **Haiku for grep-level checks.** Scanning for TODOs, hardcoded secrets, console.log statements, and unused imports is grep-level work — always use haiku. Only escalate to sonnet/opus for semantic analysis.
+10. **Context reuse.** Domain rules loaded by /preload should not be re-read. Test results from recent runs should not be re-run if nothing has changed. Avoid redundant reads within the same session.

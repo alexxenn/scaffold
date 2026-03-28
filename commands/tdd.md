@@ -28,7 +28,7 @@ This skill:
 **Model routing:**
 - Test case design → `sonnet` (structured, bounded)
 - Implementation → `sonnet` (code generation)
-- Refactoring analysis → `opus` (needs judgment about abstractions)
+- Refactoring analysis → `sonnet` default; escalate to `opus` only if refactor touches >3 files or introduces new abstraction layer
 </objective>
 
 <context>
@@ -53,13 +53,12 @@ From the feature description, extract:
 
 ### Step 2: Read Project Test Patterns
 
-Before writing tests, check:
-1. What test framework does the project use? (Jest, Vitest, pytest, cargo test, etc.)
-2. What test utilities exist? (Custom renders, mock factories, test helpers)
-3. What's the test file naming convention?
-4. Where do tests live? (Co-located `__tests__/`, separate `tests/`, etc.)
+Dispatch a single haiku agent to read in parallel:
+- Test framework config (package.json, Cargo.toml, pyproject.toml)
+- Existing test file examples (2 files max — enough to learn patterns)
+- CLAUDE.md test-specific rules (grep for "test" section only)
 
-Read CLAUDE.md for any test-specific domain rules.
+Use haiku — this is fact-finding, not analysis.
 
 ### Step 3: Generate Test Suite
 
@@ -187,4 +186,5 @@ REFACTOR PHASE:
 5. **Use project patterns.** Don't invent a new test framework. Use whatever the project already has.
 6. **Edge cases are not optional.** Every TDD cycle must include: empty/null input, boundary values, error cases.
 7. **3-failure escalation applies.** If 3 consecutive implementation attempts fail to pass a test, the test may be wrong. Re-examine the test before trying again.
-8. **Model routing:** Test generation = sonnet. Implementation = sonnet. Refactoring analysis = opus (only if the refactor is non-trivial).
+8. **Model routing:** Test generation = sonnet. Implementation = sonnet. Refactoring = sonnet by default; opus only if refactor spans >3 files or introduces new abstraction. Never use opus for single-function refactoring.
+9. **Reuse /preload context.** If domain rules and test patterns were already loaded this session via /preload, skip Step 2's file reads entirely. Trust the session context.

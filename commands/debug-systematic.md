@@ -43,6 +43,8 @@ Systematic debugging using the scientific method instead of random code changes.
 
 ## Phase 1: OBSERVE — Gather All Symptoms
 
+**Context loading:** If /preload ran this session, use the existing domain rules brief. If not, read only the domain rules section of CLAUDE.md — not the full file.
+
 **DO NOT form theories yet.** Only collect facts.
 
 1. **Reproduce the bug** — Can you trigger it? Is it consistent or intermittent?
@@ -63,6 +65,12 @@ Systematic debugging using the scientific method instead of random code changes.
    - Agent 1: Find all call sites of the failing function
    - Agent 2: Find recent changes to the failing file(s) — `git log -p <file>`
    - Agent 3: Find similar patterns elsewhere that DON'T fail (for comparison)
+
+**Model routing for debug phases:**
+- Observe phase (log reading, file scanning, reproducing): haiku
+- Hypothesize phase (pattern analysis, candidate generation): sonnet
+- Test phase (writing targeted test, running experiments): sonnet
+- Conclude phase (root cause analysis, fix design): sonnet; opus only if bug involves distributed state, security, or requires deep causal reasoning
 
 **Observation report:**
 ```
@@ -111,6 +119,8 @@ H3: <hypothesis> [confidence: LOW]
 ## Phase 3: TEST — Validate One at a Time
 
 Test hypotheses IN ORDER of confidence:
+
+**Targeted test runs only.** When testing a hypothesis, run only the test(s) that exercise the suspected code path. Full suite runs happen only at final confirmation. Each unnecessary full-suite run during debugging burns tokens and latency.
 
 ### For each hypothesis:
 
@@ -200,3 +210,4 @@ DEBUG STATE: <bug> | Phase: <N> | Hypotheses: <tested/total> | Failures: <N>/3
 6. **Document the journey.** The observation→hypothesis→test chain is valuable for future debugging.
 7. **Model routing:** Observation search = haiku. Hypothesis analysis = sonnet. Escalation fresh-eyes = opus.
 8. **This complements /gsd:debug.** Use `/debug-systematic` for focused single-bug investigation. Use `/gsd:debug` for broader debugging with state persistence across sessions.
+9. **Haiku for observation.** Log reading, stack trace parsing, file content scanning — all observation-phase work uses haiku. Understanding and synthesizing those observations uses sonnet. Only root cause analysis for complex systems uses opus.

@@ -81,6 +81,10 @@ Which? (1/2/3)
 
 Spawn 3 agents in parallel, all using model `haiku`:
 
+All 3 research agents use haiku — this is pure fact-finding (file scanning, decision log reading, codebase search). No analysis required at this stage.
+
+Cap each agent's output to ≤300 tokens. Return: list of relevant files, existing work items, relevant decisions. No elaboration.
+
 **Agent 1 — Existing work scan:**
 Search the codebase for any work already done related to the goal. Look for:
 - Files that are already implemented, partially implemented, or stubbed
@@ -105,6 +109,8 @@ Report: list of constraints with source references.
 Synthesize all three reports before proceeding.
 
 ## Step 3: Decompose into Atomic Tasks
+
+Use sonnet for decomposition. Cap the decomposition output: each task description ≤50 tokens, "done when" criterion ≤30 tokens. The task graph must be scannable, not a design document.
 
 Break the goal into atomic tasks. Each task MUST satisfy all of the following:
 
@@ -257,3 +263,5 @@ DRY RUN — no file written. Pass without --dry-run to persist.
 8. **Constraints from ADL are hard constraints.** If a task design would violate an architecture decision already logged, flag it and redesign the task before writing the plan.
 9. **After writing, always prompt next action.** Tell the user to run `/execute` or `/progress`. Do not leave the plan written with no guidance on what to do next.
 10. **`--from-decide` and `--from-sparc` are input transforms only.** The rest of the skill runs identically — research, decompose, analyze dependencies, assign skill chains, write, summarize.
+11. **Task descriptions are terse.** Each task name ≤10 words. Each "done when" criterion ≤20 words. The plan is a machine-readable execution graph, not documentation. Verbose tasks make /execute's context costs explode.
+12. **Haiku for research, sonnet for decomposition.** The research phase (what exists, what's affected) is haiku. The synthesis phase (how to break it down) is sonnet. No opus in /plan unless an architecture decision is detected that should trigger /decide instead.

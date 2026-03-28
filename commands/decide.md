@@ -102,20 +102,33 @@ OPTIONS TO EVALUATE: <if provided, or "discover options">
 CONSTRAINTS: <timeline, team size, existing patterns>
 ```
 
+**Before distributing to agents, compress the context brief to ≤150 tokens:**
+- Tech stack: one line ("Next.js + Supabase + TypeScript")
+- Prior decisions: one line each, verdict only ("Decision #3: use secrecy crate — supply chain risk")
+- Domain rules: names only, not full text ("Rules: VaultSecret<T>, tenant_id in queries, auth-before-logic")
+- Omit: full file contents, verbose rationale, session history
+
+Agents receive the compressed brief, not the raw CLAUDE.md.
+
 ### Step 2: Deploy Research Agents (Parallel)
 
 Spawn research agents based on decision size. ALL agents get the context brief.
 
+**`--fast` mode** (append to any /decide call): Skips debate phase. Uses haiku for research, sonnet for synthesis. No opus. ~90% cheaper. Good for minor/medium decisions with obvious answers.
+
 **Minor (2-3 agents):**
 ```
+model: haiku
 Agent 1: "Research industry standard for <decision>. Find what major open-source
          projects and production systems use. Cite specific repos, docs, or articles.
          Return: recommended approach + evidence."
 
+model: haiku
 Agent 2: "Research known pitfalls and anti-patterns for <decision>. Find real
          post-mortems, GitHub issues, or Stack Overflow discussions about what
          goes wrong. Return: what to avoid + evidence."
 
+model: haiku
 Agent 3: (if options provided) "Compare <Option A> vs <Option B> on: bundle size /
          performance / DX / maintenance burden / community size. Use real numbers
          where possible."
@@ -123,26 +136,32 @@ Agent 3: (if options provided) "Compare <Option A> vs <Option B> on: bundle size
 
 **Medium (4-6 agents):**
 ```
+model: haiku
 Agent 1 (Industry Standards): "Research how the top 10 production-grade <tech stack>
          projects handle <decision>. Check GitHub repos with >5K stars.
          Return: patterns with adoption data."
 
+model: haiku
 Agent 2 (Benchmarks): "Find real benchmarks comparing the options. Check npm trends,
          bundle size (bundlephobia), performance benchmarks, GitHub stars/issues
          trajectory. Return: quantitative comparison."
 
+model: haiku
 Agent 3 (DX & Maintenance): "Evaluate each option for developer experience: learning
          curve, TypeScript support, documentation quality, migration path, breaking
          change history. Return: DX comparison matrix."
 
+model: haiku
 Agent 4 (Compatibility): "Check compatibility of each option with our existing stack:
          <tech stack details>. Look for known conflicts, version requirements,
          peer dependency issues. Return: compatibility report."
 
+model: haiku
 Agent 5 (Pitfalls): "Research production failures, post-mortems, and common mistakes
          for each option. Check GitHub issues labeled 'bug', migration horror
          stories, performance gotchas. Return: risk assessment per option."
 
+model: sonnet
 Agent 6 (Future-Proofing): "Evaluate each option's trajectory: release cadence,
          maintainer activity, corporate backing, roadmap alignment with our needs.
          Return: longevity assessment."
@@ -151,22 +170,27 @@ Agent 6 (Future-Proofing): "Evaluate each option's trajectory: release cadence,
 **Major (8-12 agents):**
 All of the above, PLUS:
 ```
+model: opus
 Agent 7 (Security): "Audit each option for security implications. Check CVE history,
          supply chain risk (dependency count), known vulnerability patterns.
          Return: security comparison."
 
+model: sonnet
 Agent 8 (Scale): "Research how each option performs at scale (>10K users, >1M records,
          >100 concurrent connections). Find real case studies.
          Return: scalability assessment."
 
+model: sonnet
 Agent 9 (Migration): "If we pick each option, what's the migration effort FROM our
          current state? What's the migration path AWAY if we need to switch later?
          Return: lock-in and migration cost analysis."
 
+model: sonnet
 Agent 10 (Cost): "Estimate the total cost of each option: infrastructure cost,
           development time, operational overhead, licensing.
           Return: TCO comparison."
 
+model: opus
 Agent 11-12 (Domain-Specific): Spawn additional agents based on the specific
           decision domain (e.g., for a database decision: replication expert,
           query optimization expert).
@@ -370,3 +394,4 @@ This skill should be invoked (by you or suggested to the user) when you detect:
 8. **Log permanently.** Unless `--no-log`, every accepted decision goes into the Architecture Decisions Log. This is the project's institutional memory.
 9. **Present alternatives honestly.** The rejected options' strengths must be acknowledged, not dismissed. This helps future revisiting.
 10. **User has final say.** The verdict is a recommendation. Always ask for confirmation before logging.
+11. **Compress context before distributing.** Every agent gets a ≤150-token context brief, not raw file contents. Full CLAUDE.md sent to 10 agents = 10× the token cost for the same information.

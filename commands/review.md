@@ -45,7 +45,9 @@ Running both stages on everything is wasteful. The auto-review filters — only 
 
 ## Stage 1: Auto-Review (Sonnet)
 
-Spawn a `sonnet` agent per file (or group of small files) with the following prompt:
+Spawn a sonnet agent per file (or batch small files <100 lines together — up to 3 files per agent). Batching cuts agent spawn overhead for large changesets.
+
+Use the following prompt:
 
 ```
 Review this code for:
@@ -88,6 +90,8 @@ If the file looks clean, say "CLEAN" and nothing else.
 ## Stage 2: Deep Review (Opus)
 
 Only runs on files flagged by Stage 1 (or all files if `--deep-only`).
+
+**Before spawning:** extract only the flagged lines ±10 lines of context from each file (not full files). Cap the total input to the opus agent at ~2,000 tokens. Full file review is wasteful when Stage 1 already pinpointed the issues.
 
 Spawn an `opus` agent with the flagged files + full project context:
 
@@ -168,3 +172,5 @@ Project rules: <CLAUDE.md domain rules>
 6. **Diff mode is default for pre-commit.** When reviewing before a commit, `--diff` avoids reviewing unchanged code.
 7. **Report model routing.** Always show how many agents of each tier were used so the user sees the cost savings.
 8. **Don't auto-fix.** Review is read-only. List the issues — let the user or another skill fix them.
+9. **Surgical opus context.** The opus agent gets flagged lines ±10 lines, not full files. Stage 1 identified the problem spots — stage 2 analyzes them. Sending full files to opus for a 3-line issue wastes 95% of the token budget.
+10. **Batch small files in Stage 1.** Files under 100 lines can be grouped 3-per-sonnet-agent. Spawning one agent per 50-line file is spawn overhead, not analysis.

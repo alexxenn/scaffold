@@ -65,6 +65,8 @@ Task 4: <description>  → model: haiku  → <why>
 Task 5: <description>  → model: sonnet → <why>
 ```
 
+**Token budget per agent:** Keep individual agent prompts under 500 tokens. The task description + context brief should be compressed to essentials. If a task requires >500 tokens of context to describe, it's too large — split it.
+
 ### Step 2: Model Assignment (per /route-model)
 
 For each task, assign model tier:
@@ -103,6 +105,8 @@ Context: <relevant project context>
 Output format: <what to return>
 Constraints: <any project rules that apply>
 ```
+
+**Context compression:** The "Context" field in each agent prompt must be ≤100 tokens. Summarize project context as: "Project: X | Stack: Y | Rules: Z (names only)". Never pass full CLAUDE.md or full file contents as context.
 
 Track status:
 ```
@@ -193,3 +197,5 @@ Model efficiency:
 5. **Background for non-blocking tasks.** If the user can continue working while agents run, use `--background`. Note: results won't be available until agents complete.
 6. **Conflict detection is mandatory.** When multiple agents find contradictory results, flag it — don't silently pick one.
 7. **Report model efficiency.** Always show the split between haiku/sonnet/opus agents and estimated savings. This makes the routing benefit visible.
+8. **Agent prompt budget.** Each spawned agent's full prompt (task + context + output format + constraints) must stay under 500 tokens. Compress context aggressively — agents need direction, not a documentation dump.
+9. **Prefer batching over spawning.** For tasks that take <30 seconds each, batch 2-3 into one agent rather than spawning separate agents. Agent spawn overhead is real. Don't spawn 10 haiku agents for 10 one-line grep operations — one agent can do all 10.

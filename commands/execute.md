@@ -58,6 +58,8 @@ No plan found. Run `/plan <goal>` to create one.
 
 Stop. Do nothing else.
 
+Use a haiku agent to read and parse EXECUTION_PLAN.md — this is structured data extraction, not analysis. Parse task list, statuses, dependencies, and current wave. Return structured summary to parent context.
+
 Parse from the plan:
 - All tasks with: ID, name, type, status, dependencies, skill chain, model tier, "done when" criterion
 - Wave groupings
@@ -110,6 +112,14 @@ If `--dry-run`: print this manifest and stop. No confirmation needed.
 ### Step 3: Execute Each Task
 
 Execute tasks in the wave. Apply parallelism rules (see below), then for each task run its skill chain:
+
+**Context passed to each skill invocation:** compressed to ≤150 tokens:
+- Task name + type + "done when" criterion
+- Tech stack (one line)
+- Active domain rules (names only — the invoked skill will load full rules if needed)
+- Relevant prior decisions (verdict only)
+
+Do NOT pass the full EXECUTION_PLAN.md or full session context to each skill. Each skill is responsible for loading its own context if needed.
 
 #### Skill Chain by Task Type
 
@@ -322,3 +332,5 @@ If `blocked` tasks exist when all others are done, state is not "complete" — s
 11. **`decision` tasks require pause and user resolution.** Do not mark a `decision` task done by yourself. The decision must be confirmed resolved by the user before continuing.
 
 12. **`--force` is logged as a deviation.** It is never silent. The Execution Log entry must say "forced — dependency override by user" for auditability.
+13. **Haiku for plan operations.** Reading, parsing, and updating EXECUTION_PLAN.md are all haiku-level operations — structured data manipulation, not reasoning. Never escalate plan I/O to sonnet or opus.
+14. **Compressed task context.** Each task invocation gets a ≤150-token brief. The invoked skill (e.g., /tdd, /decide) handles its own context loading. /execute is the conductor, not the context carrier.

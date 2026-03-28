@@ -38,6 +38,13 @@ SPARC is more structured — it produces written artifacts (spec, pseudocode, ar
 - Architecture → `opus` (system-level reasoning)
 - Refinement → `opus` (risk analysis)
 - Completion → `sonnet` for code, `haiku` for search, `opus` for complex logic
+
+Model routing per phase:
+- Spec (S): sonnet — structured requirement extraction, bounded scope
+- Pseudocode (P): sonnet — algorithmic thinking, no architecture decisions
+- Architecture (A): opus — design patterns, cross-cutting concerns, trade-offs
+- Refinement (R): sonnet — implementation-level review, code patterns
+- Completion (C): sonnet for code generation; haiku for file reads and searches
 </objective>
 
 <context>
@@ -144,6 +151,14 @@ Produce:
 6. Test architecture (what kinds of tests, where)
 ```
 
+**Context passed to each phase agent:** compressed brief only (≤150 tokens):
+- Feature name + one-line description
+- Tech stack (one line)
+- Relevant prior decisions (verdict only, one line each)
+- Active domain rules (names only)
+
+Do NOT pass full CLAUDE.md, full session logs, or previous phase artifacts verbatim. Summarize previous phase output to ≤200 tokens before passing to the next phase agent.
+
 ```markdown
 ## Architecture: <Feature Name>
 
@@ -249,3 +264,5 @@ Contains all phase artifacts. Reference with `--resume` flag in next session.
 6. **Persist to Obsidian for features spanning sessions.** If Completion will take more than one session, write artifacts to file.
 7. **Model routing is explicit per phase.** Spec/Pseudocode = sonnet. Architecture/Refinement = opus. Completion = mixed.
 8. **Conflicts with architecture decisions = stop.** If the proposed architecture contradicts a logged decision, surface it before proceeding. Either the decision needs revisiting (use `/decide`) or the architecture needs adjustment.
+9. **Phase summaries, not transcripts.** When passing context from Phase N to Phase N+1, summarize phase N's output to ≤200 tokens. Carrying full artifacts forward through all 5 phases multiplies context costs by 5×.
+10. **Architecture phase only.** Opus is used ONLY for the Architecture phase. All other phases use sonnet or haiku. Running opus for spec extraction or pseudocode is wasteful.
