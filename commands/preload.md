@@ -23,7 +23,7 @@ This skill READS everything and presents a concise execution brief. It writes no
 
 <context>
 **Arguments:**
-- `--project <name>` — Focus on a specific project (e.g., `--project clawforge`, `--project ag-bridge`). If omitted, detect from current directory or load all.
+- `--project <name>` — Focus on a specific project (e.g., `--project my-project`, `--project my-api`). If omitted, detect from current directory or load all.
 - `--brief` — Compact output: just status + next action + active rules. Default.
 - `--full` — Verbose output: every memory file, every decision, every rule, full context dump.
 </context>
@@ -41,7 +41,7 @@ Aggregate results in parent context. Total read time = longest single file, not 
 
 ### Step 2: Load Current Project Status
 
-Find and read the active project's status file (e.g., `clawforge_current_status.md` or `ag_bridge_current_status.md`):
+Find and read the active project's status file (e.g., `my_project_current_status.md` or `my_api_current_status.md`):
 
 Extract:
 - Current phase and task
@@ -167,7 +167,7 @@ Flag any issues:
 3. **Cross-reference everything.** Status file vs session log vs git state — flag any inconsistencies.
 4. **Relevant decisions only (brief mode).** Don't dump all 7 architecture decisions if only 2 apply to the current task.
 5. **Surface blockers prominently.** If there's a blocker, it goes at the top, not buried in the middle.
-6. **Multi-project aware.** If the workspace has multiple projects (ClawForge + AG Bridge), load the right one based on `--project` or current directory context.
+6. **Multi-project aware.** If the workspace has multiple projects, load the right one based on `--project` or current directory context.
 7. **Respect communication preferences.** The brief itself should follow the user's stated communication style (no fluff, direct, advanced).
 8. **Surface active plans.** If EXECUTION_PLAN.md exists for the current project, always include the plan status and current wave in the execution brief. This is the primary "what to do next" signal when a plan is active.
 9. **Parallel reads with haiku.** Never read memory files sequentially. Dispatch parallel haiku agents. Reading 5 files sequentially costs 5× the latency. Parallel haiku reads cost the same tokens at 1/5 the wait.

@@ -1,12 +1,14 @@
 ---
 name: sync-context
-description: "Loop-compatible context refresh — re-reads memory, decisions, preferences, and surfaces drift warnings. Use with /loop 15m /sync-context"
+description: "Loop-compatible context refresh — re-reads memory, decisions, preferences, and injects active enforcement rules into conversation. Use with /loop 15m /sync-context"
 argument-hint: "[--project <name>]"
 allowed-tools:
   - Read
   - Glob
   - Grep
   - Bash
+  - mcp__mem0__search-memories
+  - mcp__obsidian-semantic__vault
 ---
 
 <objective>
@@ -15,155 +17,173 @@ Lightweight context refresh designed to run on a loop during long work sessions.
 **Use with:** `/loop 15m /sync-context`
 
 This is NOT a full preload — it's a quick checkpoint that:
-1. Re-reads the active rules and preferences that matter RIGHT NOW
-2. Checks if any decisions were made this session that should be remembered
-3. Flags if you're violating any established patterns
-4. Reminds of the communication style and domain rules
-5. Checks context window health
+1. Re-reads the active status and preferences in parallel
+2. Queries Mem0 for recent semantic session memories
+3. Checks if any relevant decisions apply to current work (via Obsidian semantic search)
+4. Scans for rule violations
+5. **Injects active enforcement rules into the conversation** — not just a passive report
+6. Reports session health
 
-Designed to be fast (~10 seconds) and non-disruptive.
+Designed to be fast (~10 seconds) and actively corrective, not just observational.
 </objective>
 
 <context>
 **Arguments:**
-- `--project <name>` — Focus on specific project. If omitted, use last-loaded project from `/preload` or detect from directory.
+- `--project <name>` — Focus on specific project. If omitted, detect from directory or last-loaded project.
 </context>
 
 ## Process
 
-### Step 1: Quick Memory Refresh
+### Step 0: Session Cache Check
 
-Read these files ONLY (not the full memory system):
+Before reading anything, check if CLAUDE.md domain rules were already loaded this session:
+- If `/preload` or a prior `/sync-context` was run this session: **skip Step 3 (CLAUDE.md read)**. Use the cached rules list already in context. Only re-read if the session is fresh.
+- This saves ~800 tokens per sync iteration on CLAUDE.md alone.
 
-1. **Active status file** — whichever project is active:
-   - `clawforge_current_status.md` OR
-   - `ag_bridge_current_status.md` OR
-   - `<project>_current_status.md`
+### Step 0.5: Project Path Resolution
 
-   Extract: current phase, next action, blockers
+Resolve the active project to its unified vault path. Use this mapping for ALL vault reads:
 
-2. **Feedback/preferences file** — `feedback_communication.md`
+| Project slug | Vault path | Session log path |
+|---|---|---|
+| `my-project` | `AI-Employee-Platform/MyProject/` | `AI-Employee-Platform/MyProject/07-session-logs/SESSION_LOG.md` |
+| `my-api` | `AI-Employee-Platform/MyApi/` | `AI-Employee-Platform/MyApi/07-session-logs/SESSION_LOG.md` |
 
-   Extract: communication rules
+(Add your own projects following this pattern. Projects without a subfolder use `AI-Employee-Platform/07-session-logs/SESSION_LOG.md` directly.)
 
-3. **CLAUDE.md** domain rules section ONLY (not full file)
+**Never use old local `*-KB/` paths.** Always resolve through this table.
 
-   Extract: numbered rules list
+### Step 1: Parallel Read + Mem0 Recall (4 simultaneous agents)
 
-### Step 2: Decision Recall
+Dispatch ALL FOUR at the same time — do not read sequentially:
 
-Check if any architecture decisions are relevant to what's currently being worked on:
+- **Agent A**: Read active status file (`<project>_current_status.md`). Extract: current task, next action, blockers.
+- **Agent B**: Read `feedback_communication.md`. Extract: communication rules as a flat list.
+- **Agent C**: (Skip if session cache hit from Step 0) Read CLAUDE.md domain rules section ONLY — numbered rules list + communication style block.
+- **Agent D (Mem0)**: Call `mcp__mem0__search-memories` with:
+  - `query`: "current status and recent work on {project_name}"
+  - `userId`: "{{USER_ID}}"
+  - Extract: any recent session memories, decisions, or context not yet in the status file. This catches context saved by `/session-end` that may not have been written to the status `.md` yet.
 
-1. Scan the last few messages in the conversation for keywords matching decision topics
-2. If a match: re-read that specific decision and surface it
+Wait for all four to complete, then aggregate. Total read time = slowest single agent, not sum of all four.
 
-Example: If the conversation mentions "adding a dependency", surface Decision #4 (default-features = false, no openssl-sys, cargo audit).
+### Step 2: Targeted Decision Recall (Obsidian Semantic Search)
 
-Example: If the conversation mentions "logging" or "debug", surface Decision #1 (VaultSecret, no Debug derives on secrets).
+Use the **current task** from Agent A's output (not a conversation scan) to look up relevant decisions.
+
+**Primary method — Obsidian semantic search:**
+1. Take the current task name/description from the status file
+2. Call `mcp__obsidian-semantic__vault` with `action: "search"` and query: the current task description + "architecture decision"
+   - Scope search to the project's vault path from Step 0.5 (e.g., `AI-Employee-Platform/<Project>/02-architecture/`)
+3. If semantic results found: extract the relevant decision block(s)
+4. If no results: skip. Zero token cost.
+
+**Fallback — direct file read:**
+If the Obsidian semantic MCP is unavailable, fall back to the old method:
+1. Match keywords against decision titles in `ARCHITECTURE_DECISIONS_LOG.md` (section headers only)
+2. If match found: read that specific decision block only
+
+This replaces "scan last few messages" — the status file already knows what we're doing. Semantic search finds relevant decisions even when keywords don't exactly match.
 
 ### Step 3: Drift Detection
 
-Check for patterns that violate established rules:
+Check for violations of the active rules. Scan recent code/conversation context for:
 
-**For Rust/ClawForge projects:**
-- Any recent code that uses `unwrap()` outside tests → flag
-- Any `String` type where `VaultSecret<T>` should be used → flag
-- Any DB query missing `tenant_id` → flag
-- Any `#[derive(Debug)]` on types near secrets → flag
+**Rust projects (example violations):**
+- `unwrap()` outside tests → VIOLATION
+- Bare `String` where a secrets wrapper should be used → VIOLATION
+- DB query missing tenant/scope filter → VIOLATION
+- `#[derive(Debug)]` on types that touch secrets → VIOLATION
 
-**For Next.js/Supabase projects:**
-- Any Supabase query without RLS context → flag
-- Any `console.log` left in production code → flag
-- Any hardcoded API keys or secrets → flag
+**Next.js/Supabase projects:**
+- Supabase query without RLS context → VIOLATION
+- `console.log` in production code → VIOLATION
+- Hardcoded API keys or secrets → VIOLATION
 
-**For any project:**
-- Check if domain rules from CLAUDE.md are being followed
-- Check if communication style is being respected (are responses too verbose? too basic?)
+**Any project:**
+- Responses getting verbose/explanatory when user wants terse/direct → DRIFT
+- Basic advice given when user wanted advanced analysis → DRIFT
+- Domain rules from CLAUDE.md not followed → VIOLATION
 
-### Step 4: Session Health Check
+### Step 4: Active Rule Injection
 
-Quick checks:
-- Are there uncommitted changes that should be committed?
-- Is the session log up to date? (Has it been >2 hours since last entry?)
-- Are there pending TODOs that were supposed to be done this session?
-- Has the conversation been going long without updating the status file?
+**This is the critical step that the old version skipped.**
 
-### Step 5: Output Sync Report
+Regardless of whether violations were found, end EVERY sync with an explicit active rules block that **stays visible in the conversation**. This keeps rules in Claude's active context window, not just a file it read once.
 
-Keep it SHORT — this runs every 15 minutes, it shouldn't be a wall of text.
+Format when CLEAN:
 
 ```
-──── SYNC @ <time> ────
-Phase: <current phase/task>
-Rules active: <count> (<list names only>)
-Decisions relevant: #<N> <title> (if any match current work)
-Drift: <"Clean" or list violations>
-Health: <"OK" or warnings>
-────────────────────────
+──── SYNC @ <HH:MM> ────────────────────────────
+Phase: <current task from status file>
+Drift: Clean
+Health: <OK or warning>
+
+ACTIVE RULES (re-anchored):
+  • <Rule 1 — one line>
+  • <Rule 2 — one line>
+  • <Rule 3 — one line>
+  [all domain rules for this project]
+
+Communication: Advanced/direct — lead with action, no fluff, no basic explanations
+─────────────────────────────────────────────────
 ```
 
-**Only expand if there's a problem:**
+Format when VIOLATIONS FOUND:
 
 ```
-──── SYNC @ <time> ────
-Phase: Phase 1 Week 1 — Core Types
-Rules active: 7 (secrets, tenant, errors, deps, testing, unwrap, crates)
-Decisions relevant: #1 VaultSecret<T> (you're working on credential types)
-⚠ Drift: Found `unwrap()` at line 47 of tenant.rs — use `?` or `.expect("reason")`
-⚠ Health: 3 uncommitted files, last commit 2h ago
-Reminder: User wants advanced analysis, no basic explanations
-────────────────────────
+──── SYNC @ <HH:MM> ────────────────────────────
+Phase: <current task>
+Health: <OK or warning>
+
+🚫 ACTIVE VIOLATIONS — FIX BEFORE CONTINUING:
+  ► [Rust Rule 6] unwrap() at src/tenant.rs:47 — use `?` or `.expect("reason")`
+  ► [Rust Rule 1] `api_key: String` in types.rs:23 — must be `VaultSecret<String>`
+
+ACTIVE RULES (re-anchored):
+  • Secrets: VaultSecret<T>, no bare String, no Debug derive on secret types
+  • Tenant isolation: every DB query needs WHERE tenant_id = $N
+  • Errors: thiserror, no internal details in API responses
+  • Deps: default-features = false, cargo audit after add
+  • No unwrap() outside tests
+  • Auth before logic — always
+  [+ any project-specific rules]
+
+Communication: Advanced/direct — lead with action, no fluff
+─────────────────────────────────────────────────
 ```
 
-### Step 6: Preference Reinforcement
+**Violations are not suggestions.** They are listed as blocking items above the ACTIVE RULES block. Claude must address them before continuing with the current task.
 
-At the END of every sync, silently re-internalize these (don't print unless violated):
+### Step 5: Session Health Check
 
-**From feedback_communication.md:**
-- Advanced, no-BS analysis
-- No basic or obvious advice
-- Honest assessments over encouragement
-- Frame in terms of AI-assisted development
+Quick checks (append to output):
+- Uncommitted changes that should be committed?
+- Session log not updated in >2 hours?
+- Pending TODOs from this session not done?
+- Status file stale (>3 hours since update during active coding)?
 
-**From CLAUDE.md communication style:**
-- Lead with action, not reasoning
-- When something is wrong, say it directly
-- Don't explain basic concepts unless asked
-
-**From user_profile.md:**
-- 16yo, advanced AI knowledge, basic programming
-- Uses Claude Code for 99% of coding
-- Building SaaS for Greek market
-
-These preferences are ALWAYS ACTIVE. The sync just makes sure they haven't been forgotten mid-conversation.
-
-## Loop Integration
-
-**Recommended setup:**
-```
-/loop 15m /sync-context
-```
-
-This runs every 15 minutes during active work. Adjust timing:
-- `10m` for intense coding sessions with many decisions
-- `20m` for research/planning sessions
-- `30m` for review/documentation sessions
-
-**What happens on each loop iteration:**
-1. Quick read of 3 files (~2 seconds)
-2. Drift scan of recent conversation (~3 seconds)
-3. Health check (~2 seconds)
-4. Print compact report (~1 second)
-5. Re-internalize preferences (silent)
-
-Total: ~8 seconds per sync. Minimal disruption.
+If health issues exist, add a `⚠ Health:` line. If clean, one line: `Health: OK`.
 
 ## Rules
 
-1. **Fast and quiet when clean.** If nothing is wrong, the report is 4 lines. Don't waste the user's attention.
-2. **Loud when drifting.** If rules are being violated or preferences forgotten, expand the warning with specifics.
-3. **Never modify files.** This is read-only. If something needs fixing, flag it — don't fix it.
-4. **Preference reinforcement is silent.** Don't say "Reminder: you want advanced analysis" every 15 minutes. Just internally re-apply it. Only print if the CURRENT conversation is violating it.
-5. **Decision recall is contextual.** Only surface decisions that match what's currently being discussed. Don't dump all decisions every sync.
-6. **Multi-project aware.** If the user switched projects mid-session, detect it and load the right context.
-7. **Don't repeat yourself.** If you flagged the same drift issue last sync and it hasn't been addressed, escalate the severity — don't just print the same message.
+1. **Parallel reads always.** Never read the 4 sources sequentially. Dispatch simultaneously (files + Mem0).
+2. **Session cache for CLAUDE.md.** Don't re-read it every 15 minutes. Once per session is enough.
+3. **Active rules block is mandatory.** Every sync must end with the ACTIVE RULES block. This is what keeps enforcement alive between preloads — without it, rules fade after the first few turns.
+4. **Violations are blocking.** Don't list a violation and move on. Surface it as blocking. Claude should not continue the current task until violations are addressed.
+5. **Decision recall uses status file, not message scan.** Match current task keywords against decision titles. Don't scan backwards through conversation.
+6. **Fast and quiet when clean.** No violations = compact output. ACTIVE RULES block stays but is concise.
+7. **Loud when drifting.** Violations get their own section above the rules block, in bold, with file:line specifics.
+8. **Never modify files.** Read-only. Flag violations, don't auto-fix.
+9. **No repeated unfixed violations.** If the same violation was flagged last sync and still not fixed, escalate: add `(escalated — not fixed since <time>)` suffix.
+10. **Multi-project aware.** Detect project from directory or `--project` arg. Load the right rules.
+11. **Unified vault paths only.** Never reference old local `*-KB/` paths. Always use `AI-Employee-Platform/{project}/` from the mapping table.
+12. **MCP graceful degradation.** If `mcp__mem0__search-memories` or `mcp__obsidian-semantic__vault` are unavailable, fall back to direct file reads silently. Never fail the sync because an MCP is down.
+
+## Model routing
+
+- All 4 parallel reads (files + Mem0): haiku (fast, no reasoning needed)
+- Obsidian semantic search: haiku (MCP handles the embedding lookup)
+- Drift detection: sonnet (needs to reason about code patterns)
+- Output formatting: sonnet
+- No opus needed for sync — this is pattern matching, not design decisions

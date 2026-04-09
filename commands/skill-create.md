@@ -30,7 +30,7 @@ A skill that creates new skills. Ensures every generated skill:
 <context>
 **Arguments:**
 - `<skill-name>` — Name of the skill (e.g., `deploy-check`, `db-migrate`, `api-test`)
-- `--project <slug>` — If project-scoped, the project slug (e.g., `rust`, `ag-bridge`, `rental-ai`)
+- `--project <slug>` — If project-scoped, the project slug (e.g., `my-project`, `my-api`, `e-commerce-app`)
 - `--category global|<project>` — Shorthand for `--project`. `global` puts it in root commands.
 - `--from-pattern <description>` — Describe an existing skill to use as a structural template.
 </context>

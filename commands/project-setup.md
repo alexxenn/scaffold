@@ -1,6 +1,6 @@
 ---
 name: project-setup
-description: "Bootstrap a new project with Obsidian vault, CLAUDE.md, persistent memory, session logs, AND custom project-specific skills — fully replicating the ClawForge organization pattern."
+description: "Bootstrap a new project with Obsidian vault, CLAUDE.md, persistent memory, session logs, AND custom project-specific skills — fully replicating the scaffold organization pattern."
 argument-hint: "<project-name> [--vault-name <name>] [--skip-research] [--tech <stack>]"
 allowed-tools:
   - Read
@@ -22,22 +22,22 @@ Bootstrap a complete project organization system with:
 2. CLAUDE.md with session persistence protocol + domain rules
 3. Claude persistent memory (MEMORY.md index + categorized files)
 4. Session log system (dual-log: status tracker + dated Obsidian log)
-5. **Custom project-specific skills** — NOT generic agent routing, but bespoke skills that encode the project's own types, patterns, conventions, checklists, and code templates (like ClawForge's `/rust:scaffold` with VaultSecret<T> and TenantScoped<T> baked in)
+5. **Custom project-specific skills** — NOT generic agent routing, but bespoke skills that encode the project's own types, patterns, conventions, checklists, and code templates (e.g., a `/myproject:scaffold` skill with your project's domain types baked in)
 
-The goal is that ANY new project gets the same depth of automation ClawForge has — skills that know YOUR project's types, YOUR project's rules, YOUR project's patterns.
+The goal is that ANY new project gets deep automation — skills that know YOUR project's types, YOUR project's rules, YOUR project's patterns.
 
 **After this command:** The project has custom skills, session persistence, knowledge base, and is ready for `/gsd:new-project` or direct development.
 </objective>
 
 <context>
 **Arguments:**
-- `<project-name>` — Required. Name of the project (e.g., "rental-ai", "saas-dashboard")
+- `<project-name>` — Required. Name of the project (e.g., "my-saas", "e-commerce-app")
 - `--vault-name <name>` — Optional. Obsidian vault folder name. Defaults to Title-Case of project name
 - `--skip-research` — Skip domain research phase
 - `--tech <stack>` — Technology stack (e.g., "nextjs-supabase", "rust-axum", "python-fastapi", "flutter-firebase", "django-postgres", "rails-postgres", "laravel-mysql")
 
 **What makes this different from generic project setup:**
-This skill creates CUSTOM skills for each project. Not "use react-expert agent" — but `/myproject:new-component` that knows your design system tokens, your state management pattern, your API layer conventions, your auth model, your folder structure. Like how `/rust:scaffold` knows about VaultSecret<T> and 4 crates, your project's skills will know YOUR project's specific patterns.
+This skill creates CUSTOM skills for each project. Not "use react-expert agent" — but `/myproject:new-component` that knows your design system tokens, your state management pattern, your API layer conventions, your auth model, your folder structure. Your project's skills will know YOUR project's specific patterns.
 </context>
 
 ## Process
@@ -53,7 +53,7 @@ Ask the user these questions one at a time. These answers drive EVERYTHING — e
 
 **Architecture & Patterns:**
 4. What's the folder/module structure? (e.g., "monorepo with packages/", "crates/ workspace", "src/app/ Next.js", "feature-based modules")
-5. What are the core domain types? (e.g., "Tenant, Agent, Message" for ClawForge, or "Product, Cart, Order" for e-commerce, or "Patient, Appointment, Provider" for healthcare)
+5. What are the core domain types? (e.g., "Tenant, Agent, Message" for a multi-tenant platform, or "Product, Cart, Order" for e-commerce, or "Patient, Appointment, Provider" for healthcare)
 6. What auth model? (JWT, API keys, OAuth, Supabase Auth, session-based, none yet)
 7. Any domain-specific rules that MUST be enforced? Examples:
    - Multi-tenant: "tenant_id in every query"
@@ -61,7 +61,8 @@ Ask the user these questions one at a time. These answers drive EVERYTHING — e
    - PCI: "no raw card numbers in app code"
    - E-commerce: "inventory checks before order confirmation"
    - Financial: "double-entry bookkeeping, all amounts in cents"
-   - General: "no unwrap(), no console.log in production"
+   - Rust: "no unwrap() outside tests"
+   - General: "no console.log in production"
 
 **Development Workflow:**
 8. What's the timeline? (weeks/phases, or "ongoing")
@@ -135,7 +136,7 @@ This is the critical phase. Based on Phase 0 answers, DESIGN the custom skills t
 
 Create skill files at `.claude/commands/<project-slug>/`.
 
-**Each skill MUST follow this structure** (modeled after the ClawForge Rust skills):
+**Each skill MUST follow this structure** (modeled after the scaffold pattern):
 
 ```markdown
 ---
@@ -246,7 +247,7 @@ Create the Obsidian vault at `<vault-name>/`:
 - List the custom skills created
 - Next steps
 
-**ARCHITECTURE_DECISIONS_LOG.md:** Empty template with format instructions (same as ClawForge pattern — What/Why/Why-not-alternatives/Impact per decision)
+**ARCHITECTURE_DECISIONS_LOG.md:** Empty template with format instructions (What/Why/Why-not-alternatives/Impact per decision)
 
 ### Phase 4: Generate CLAUDE.md
 
@@ -354,7 +355,7 @@ When you encounter a decision that affects code architecture, library choice, da
 
 ## Domain-Specific Rules (Always Active)
 
-<Generate from Phase 0 question 7 answers. Format as numbered rules like ClawForge:>
+<Generate from Phase 0 question 7 answers. Format as numbered rules:>
 1. **<Rule name>**: <concrete rule with specific patterns/types>
 2. **<Rule name>**: <another rule>
 ...

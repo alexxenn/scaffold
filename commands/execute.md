@@ -251,7 +251,7 @@ Append to the Execution Log section (create it if it doesn't exist):
 After all tasks in a wave complete:
 
 **All passed:**
-1. Checkpoint: update the status file (`clawforge_current_status.md` or equivalent) and the session log in Obsidian at `07-session-logs/SESSION_LOG.md`
+1. Checkpoint: update the project status file (`<project>_current_status.md`) and the session log in Obsidian at `07-session-logs/SESSION_LOG.md`
 2. Print the next wave manifest (same format as Step 2)
 3. Ask for confirmation before executing the next wave:
    ```

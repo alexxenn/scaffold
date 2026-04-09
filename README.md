@@ -24,7 +24,7 @@ Scaffold burns the whole thing down. It keeps Claude honest.
 - **Stop Claude from lying about completion** — Workflow gates, verification checkpoints, and systematic debugging force Claude to actually finish what it starts. Tasks get audited. Progress gets logged. No silent failures.
 - **Slash token spend by 75%** — 3-tier model routing (Haiku for search, Sonnet for code, Opus for decisions) gives you the right brain for the right job and keeps billing reasonable.
 
-`scaffold · 20 skills · 5 hooks · ~75% token savings · Claude Code 2.0+`
+`scaffold · 24 skills · 5 hooks · ~75% token savings · Claude Code 2.0+`
 
 ---
 
@@ -118,6 +118,10 @@ Skills are only as good as the system that strings them together. These three tu
 | `/loop-guard` | Audits for incomplete work: truncated files, partial commits, gaps vs original request. Forces completion before you think you're done. |
 | `/context-save` | Saves current session state before context compaction. Writes a compact `RESUME.md` (≤500 tokens) so you pick up exactly where you left off without re-loading dead weight. |
 | `/agents-md` | Generates `AGENTS.md` — universal AI agent instructions that work with Claude Code, Cursor, GitHub Copilot, and any AI that reads agent config files. Based on the community standard with 3,367 upvotes on GitHub. |
+| `/session-end` | Automated session close ritual: updates status memory, appends session log to Obsidian vault, saves to Mem0 + Obsidian semantic MCP, checks for uncommitted work, flags consolidation readiness. Never lose session context again. |
+| `/start` | Fresh-conversation startup: loads project status from memory + Mem0, reads latest session log via Obsidian semantic search, resumes work without asking for a recap. The complement to `/session-end`. |
+| `/consolidate` | Learning pipeline: scans `MISTAKE_LOG.md` for repeated failures (N≥2), promotes them to `ANTI_PATTERNS.md` as enforced rules, injects approved rules into CLAUDE.md. Make the same mistake twice — it becomes a permanent guard rail. |
+| `/vault-setup-project` | Bootstraps any project into the vault architecture: restructures CLAUDE.md into 3-tier format (parent→project→rules), creates mistake tracking, anti-patterns directory, and Obsidian integration. |
 
 ---
 
@@ -313,7 +317,9 @@ Issues and PRs welcome. Submit your skills to [awesome-claude-code](https://gith
 
 - **[ruflo](https://github.com/ruvnet/ruflo) by ruvnet** — 3-tier model routing, SPARC methodology, parallel dispatch
 - **[superpowers](https://github.com/obra/superpowers) by obra** — workflow gates, TDD iron law, 2-stage review, systematic debugging, verification gates, worktree pattern
-- **Original skills** (`/project-setup`, `/decide`, `/preload`, `/sync-context`, `/loop-guard`, `/context-save`, `/agents-md`) built from scratch for this framework
+- **Original skills** (`/project-setup`, `/decide`, `/preload`, `/sync-context`, `/loop-guard`, `/context-save`, `/agents-md`, `/session-end`, `/start`, `/consolidate`, `/vault-setup-project`) built from scratch for this framework
+- **[Mem0 MCP](https://github.com/mem0ai/mem0-mcp)** — cross-session semantic memory layer used by `/session-end` and `/start`
+- **[obsidian-semantic-mcp](https://github.com/anpigon/obsidian-semantic-mcp)** — Obsidian vault semantic search used by `/session-end`, `/start`, and `/sync-context`
 
 ---
 
